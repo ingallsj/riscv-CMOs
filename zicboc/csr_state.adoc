@@ -1,0 +1,73 @@
+[#csr_state,reftext="Control and Status Register State"]
+== Control and Status Register State
+
+****
+
+_The CBO copy extension relies on state in `xenvcfg` CSRs that are defined
+in the privileged architecture._
+
+****
+
+Three CSRs control the execution of CMO instructions:
+
+* `menvcfg`
+* `senvcfg`
+* `henvcfg`
+
+The `senvcfg` register is used by all supervisor modes, including VS-mode. A
+hypervisor is responsible for saving and restoring `senvcfg` on guest context
+switches. The `henvcfg` register is only present if the H-extension is
+implemented and enabled.
+
+Each `xenvcfg` register (where `x` is `m`, `s`, or `h`) has the following
+generic format:
+
+.Generic Format for xenvcfg CSRs
+[cols="^10,^10,80a"]
+|===
+| Bits    | Name     | Description
+
+| [8]     | `CBCE`   | Cache Block Copy instruction Enable
+
+Enables the execution of the cache block copy instruction, `CBO.COPY`, in a
+lower privilege mode:
+
+* `0`: The instruction raises an illegal instruction or virtual instruction
+  exception
+* `1`: The instruction is executed
+
+|===
+
+The `xenvcfg` registers control CBO instruction execution based on the current
+privilege mode and the state of the appropriate CSRs, as detailed below.
+
+--
+
+A `CBO.COPY` instruction executes or raises an illegal instruction or
+virtual instruction exception based on the state of the `xenvcfg.CBCE` bits:
+
+[source,sail,subs="attributes+"]
+--
+
+// illegal instruction exceptions
+if (((priv_mode != M) && !menvcfg.CBCE) ||
+    ((priv_mode == U) && !senvcfg.CBCE))
+{
+  <raise illegal instruction exception>
+}
+// virtual instruction exceptions
+else if (((priv_mode == VS) && !henvcfg.CBCE) ||
+         ((priv_mode == VU) && !(henvcfg.CBCE && senvcfg.CBCE)))
+{
+  <raise virtual instruction exception>
+}
+// execute instruction
+else
+{
+  <execute CBO.COPY>
+}
+
+--
+
+Each `xenvcfg` register is WARL; however, software should determine the legal
+values from the execution environment discovery mechanism.

@@ -1,0 +1,8 @@
+[#extensions,reftext="Extensions"]
+== Extensions
+
+The CBO.COPY instruction is defined in the following extension:
+
+* <<#Zicboc>>
+
+include::Zicboc.adoc[]

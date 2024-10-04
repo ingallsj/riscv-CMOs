@@ -1,0 +1,10 @@
+[colophon]
+== Colophon
+
+This document is in the link:http://riscv.org/spec-state[Draft] state.
+
+[NOTE]
+.Copyright and licensure:
+This document is released under the
+https://creativecommons.org/licenses/by/4.0/[Creative Commons Attribution 4.0
+International License].

@@ -1,0 +1,34 @@
+[#insns-cbo_zero,reftext="Cache Block Zero"]
+=== cbo.zero
+
+Synopsis::
+Copy the full set of bytes corresponding to a cache block
+
+Mnemonic::
+cbo.copy _to_, _from_
+
+Encoding::
+[wavedrom, , svg]
+....
+{reg:[
+	{ bits: 7,  name: 0xF,   attr: ['TODO'] },
+	{ bits: 5,  name: 0x0 },
+	{ bits: 3,  name: 0x2,   attr: ['TODO'] },
+	{ bits: 5,  name: 'rs1', attr: ['from'] },
+	{ bits: 5,  name: 'rs2', attr: ['to'] },
+	{ bits: 7, name: 0x004, attr: ['TODO'] },
+]}
+....
+
+Description::
+
+A *cbo.copy* instruction performs loads from the full set of bytes corresponding to the cache block whose effective address is the base address
+specified in _rs1_, and stores that result to the full set of bytes corresponding to the cache block whose effective address is the base address
+specified in _rs2_.
+An implementation may or may not update the entire set of bytes atomically.
+
+Operation::
+[source,sail]
+--
+TODO
+--

@@ -1,0 +1,177 @@
+[#background,reftext="Background"]
+== Background
+
+This chapter references the Background chapter of the Base CMO ISA Extensions,
+Zicbom, Zicboz, Zicbop.
+
+=== Memory Ordering
+
+For cache-block copy instructions, the resulting load and store operations behave
+as loads and stores in the PPO rules and are ordered by other instructions that
+order loads and stores.
+
+=== Traps
+
+Execution of certain CMO instructions may result in traps due to CSR state,
+described in the <<#csr_state>> section, or due to the address translation and
+protection mechanisms. The trapping behavior of CMO instructions is described in
+the following sections.
+
+==== Illegal Instruction and Virtual Instruction Exceptions
+
+Cache-block copy instructions may raise
+illegal instruction exceptions or virtual instruction exceptions depending on
+the current privilege mode and the state of the CMO control registers described
+in the <<#csr_state>> section.
+
+==== Page Fault, Guest-Page Fault, and Access Fault Exceptions
+
+Similar to load and store instructions, CMO instructions are explicit memory
+access instructions that compute an effective address. The effective addresses are
+ultimately translated into a physical address based on the privilege mode and
+the enabled translation mechanisms, and the CMO extensions impose the following
+constraints on the physical addresses in a given cache block:
+
+* The PMP access control bits shall be the same for _all_ physical addresses in
+  the cache block, and if write permission is granted by the PMP access control
+  bits, read permission shall also be granted
+
+* The PMAs shall be the same for _all_ physical addresses in the cache block,
+  and if write permission is granted by the supported access type PMAs, read
+  permission shall also be granted
+
+If the above constraints are not met, the behavior of a CBO instruction is
+UNSPECIFIED.
+
+****
+
+_This specification assumes that the above constraints will typically be met for
+main memory regions and may be met for certain I/O regions._
+
+****
+
+The Zicboc extension introduces an additional supported access type PMA for
+cache-block copy instructions. Main memory regions are required to support
+accesses by cache-block copy instructions; however, I/O regions may specify
+whether accesses by cache-block copy instructions are supported.
+
+A cache-block copy instruction is permitted to read the specified cache block
+whenever a load instruction is permitted to access the corresponding physical
+addresses and when the PMAs indicate that cache-block copy instructions are a
+supported access type.
+A cache-block copy instruction is permitted to write the specified cache block
+whenever a store instruction is permitted to access the corresponding physical
+addresses and when the PMAs indicate that cache-block copy instructions are a
+supported access type.
+If access to the cache block is not permitted, a cache-block copy instruction
+raises a load- or store-page-fault or -guest-page-fault exception if address
+translation does not respecitvely permit read or write access or raises a
+load- or store-access-fault-exception otherwise. During address translation,
+the instruction also checks the accessed and dirty bits and may either raise
+an exception or set the bits as required.
+
+****
+
+_Like a load or store instruction, a CBO instruction's translation mode is
+controlled by the states of the `MPRV`, `MPV`, and `MPP` bits
+in `mstatus` and the `SUM` and `MXR` bits in `mstatus`, `sstatus`, and
+`vsstatus`._
+
+****
+
+==== Address Misaligned Exceptions
+
+CBO instructions do _not_ generate address misaligned exceptions.
+
+==== Breakpoint Exceptions and Debug Mode Entry
+
+Unless otherwise defined by the debug architecture specification, the behavior
+of trigger modules with respect to CMO instructions is UNSPECIFIED.
+
+****
+
+_For the Zicboc extension, this specification recommends
+the following common trigger module behaviors:_
+
+* Type 6 address match triggers, i.e. `tdata1.type=6` and `mcontrol6.select=0`,
+  should be supported
+
+* Type 2 address/data match triggers, i.e. `tdata1.type=2`, should be
+  unsupported
+    
+* The size of a memory access equals the size of the cache block accessed, and
+  the compare values follow from the addresses of the NAPOT memory region
+  corresponding to the cache block containing the effective address
+  
+* Unless an encoding for a cache block is added to the `mcontrol6.size` field,
+  an address trigger should only match a memory access from a CBO instruction if
+  `mcontrol6.size=0`
+
+_If the Zicboc extension is implemented, this specification recommends the
+following additional trigger module behaviors:_
+
+* Implementing address match triggers should be mandatory
+
+* Type 6 data match triggers, i.e. `tdata1.type=6` and `mcontrol6.select=1`,
+  should be supported, and implementing these triggers should be optional
+
+* Memory accesses are considered to be stores, i.e. an address trigger matches
+  only if `mcontrol6.store=1`
+
+_This specification also recommends that the behavior of trigger modules with
+respect to the Zicboc extension should be defined in version 1.0 of the debug
+architecture specification._
+
+****
+
+==== Hypervisor Extension
+
+For the purposes of writing the `mtinst` or `htinst` register on a trap, the
+following standard transformation is defined for cache-block copy instructions:
+
+[wavedrom, , svg]
+....
+{reg:[
+	{ bits: 7,  name: 'opcode'},
+	{ bits: 5,  name: 0x0 },
+	{ bits: 3,  name: 'funct3'},
+	{ bits: 5,  name: 0x0},
+	{ bits: 12, name: 'operation'},
+]}
+....
+
+The `operation` field corresponds to the 12 most significant bits of the
+trapping instruction.
+
+****
+
+_As described in the hypervisor extension, a zero may be written into `mtinst`
+or `htinst` instead of the standard transformation defined above._
+
+****
+
+=== Effects on Constrained LR/SC Loops
+
+The following event is added to the list of events that satisfy the eventuality
+guarantee provided by constrained LR/SC loops, as defined in the A extension:
+
+* Some other hart executes a cache-block copy instruction to the reservation
+  set of the LR instruction in _H_'s constrained LR/SC loop.
+
+* This hart executes a cache-block copy instruction, regardless of address,
+  in _H_'s constrained LR/SC loop.
+
+****
+
+_The above event has been because cache coherence protocol invalidations for
+stores are similarly done for invalidations for cache-block copy operations._
+
+****
+
+=== Software Discovery
+
+The initial CBO copy extension requires the size of the cache block for copy
+instructions to be discovered by software.
+
+Other general cache characteristics may also be specified in the discovery
+mechanism.

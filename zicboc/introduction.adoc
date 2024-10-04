@@ -1,0 +1,21 @@
+[#intro,reftext="Introduction"]
+== Introduction
+
+_Cache-block-copy operation_ (or _CBO.COPY_) instruction performs its operation on
+copies of data in the memory hierarchy. In general, CBO instructions operate on
+cached copies of data, but in some cases, a CBO instruction may operate on
+memory locations directly.
+
+* A _copy_ instruction copies a range of memory locations, potentially
+  allocating cached copies of data in one or more caches.
+
+This document introduces the CBO Copy ISA extension that operates
+specifically on cache blocks or the memory locations corresponding to a cache
+block; these are known as _cache-block operation_ (or _CBO_) instructions.
+
+* The _Zicboc_ extension defines a cache-block zero instruction: `CBO.COPY`
+
+The execution behavior of the above instructions is also modified by CSR state
+added by this specification.
+
+The remainder of this document describes the above ISA extension.

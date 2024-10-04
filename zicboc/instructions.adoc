@@ -1,0 +1,3 @@
+[#insns,reftext="Instructions"]
+== Instructions
+include::insns/cbo.copy.adoc[]

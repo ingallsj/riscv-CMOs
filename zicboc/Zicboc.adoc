@@ -1,0 +1,36 @@
+[#Zicboc,reftext="Cache-Block Copy Instruction"]
+=== Cache-Block Copy Instruction
+
+Cache-block Copy instruction reads the set of bytes corresponding to a
+cache block and stores them to another cache block.
+An implementation may update the bytes in any order and with any
+granularity and atomicity, including individual bytes.
+
+****
+
+_Cache-block copy instructions load and store independently of whether data from
+the underlying memory locations are cacheable. In addition, this specification
+does not constrain how the bytes are written._
+
+****
+
+These instructions operate on the cache block, or the memory locations
+corresponding to the cache block, whose effective address is specified in _rs1_
+and _rs2_. The effective address is translated into a corresponding physical
+address by the appropriate translation mechanisms.
+
+The following instruction comprises the Zicboc extension:
+
+[%header,cols="^1,^1,4,8"]
+|===
+|RV32
+|RV64
+|Mnemonic
+|Instruction
+
+|&#10003;
+|&#10003;
+|cbo.zero _base_
+|<<#insns-cbo_copy>>
+
+|===
